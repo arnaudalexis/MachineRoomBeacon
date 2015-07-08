@@ -30,47 +30,73 @@ static int hour;
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    /*
+        The basic way to monitor beacons that we followed, look at the estimote sdk doc for mor informations
+    */   
 
-    //Enter your beacon UUID
+   
+    /*
+        Enter your beacon UUID (Use the estimote demo app to get it easily)
+    */
     NSUUID *uuid = [[NSUUID alloc] initWithUUIDString:@"B9407F30-F5F8-466E-AFF9-25556B57FE6D"];
     
-    //set up beacon manager
+    /*
+        Set up beacon manager
+    */
     self.beaconManager = [[ESTBeaconManager alloc] init];
     self.beaconManager.delegate = self;
     
-    //set up beacon region
+    /*
+        Set up region with UUID and major/minor values (get it easily the same way as the UUID)
+    */
     self.beaconRegion = [[ESTBeaconRegion alloc] initWithProximityUUID:uuid
                                                                  major:94
                                                                  minor:15
                                                             identifier:@"RedionIdentifier" ];
 
-    //let us know when exit and enter
+    /*
+        Notify on enter/exit of beacon range
+    */
     self.beaconRegion.notifyOnEntry = YES;
     self.beaconRegion.notifyOnExit = YES;
     
-    //start monitoring
+    /*
+        Start monitoring 
+    */
     [self.beaconManager startMonitoringForRegion:self.beaconRegion];
     
-    //start ranging
+    /*
+        Start ranging
+    */
     [self.beaconManager startRangingBeaconsInRegion:self.beaconRegion];
     
-    //Asks to monitor in background - iOS 8
+    
+    /*
+        Asks to monitor in background - iOS 8
+    */
     [self.beaconManager requestAlwaysAuthorization];
 
   
 }
 
-//check region failure
+/*
+    Check errors for this monitoring
+*/
 -(void)beaconManager:(ESTBeaconManager *)manager monitoringDidFailForRegion:(ESTBeaconRegion *)region withError:(NSError *)error{
     NSLog(@"Region did fail: Manager : %@ - Region : %@ - Error : %@ ", manager, region, error);
 }
 
-//check permission status
+/*
+    Check permissions
+*/
 -(void)beaconManager:(ESTBeaconManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status {
     NSLog(@"Status %d", status);
 }
 
 
+/*
+    Notification method when entering beacon range
+*/
 -(void)beaconManager:(ESTBeaconManager *)manager didEnterRegion:(ESTBeaconRegion *)region {
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     notification.alertBody = @"A beacon is in range";
@@ -81,6 +107,9 @@ static int hour;
     [[UIApplication sharedApplication] presentLocalNotificationNow:notification];
 }
 
+/*
+    Notification method when exiting beacon range
+*/
 -(void)beaconManager:(ESTBeaconManager *)manager didExitRegion:(ESTBeaconRegion *)region {
     UILocalNotification *notification = [[UILocalNotification alloc] init];
     notification.alertBody = @"A beacon has exited";
@@ -91,13 +120,29 @@ static int hour;
     [[UIApplication sharedApplication] presentLocalNotificationNow:notification];
 }
 
+/*
+    Where magic happens :) 
+*/
 -(void)beaconManager:(ESTBeaconManager *)manager didRangeBeacons:(NSArray *)beacons inRegion:(ESTBeaconRegion *)region {
 
+    /*
+        Beacon detected
+    */
     if (beacons.count > 0) {
+        /*
+            New beacon object
+        */
         ESTBeacon *firstBeacon = [beacons firstObject];
+        /*
+            Add Range to our Label
+        */
         self.RangeLabel.text = [self textForProximity:firstBeacon.proximity];
         NSString *prox = [self textForProximity:firstBeacon.proximity];
         
+
+        /*
+            The following code displays how long we are staying in beacon rabge
+        */
         if ([prox  isEqual: @"Near"] || [prox isEqual:@"Immediate"] )
             s = s + 1;
 
@@ -121,6 +166,9 @@ static int hour;
     
 }
 
+/*
+    Check proximity level
+*/
 -(NSString *)textForProximity: (CLProximity)proximity {
 
     switch (proximity) {
